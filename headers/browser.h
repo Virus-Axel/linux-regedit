@@ -2,28 +2,44 @@
 #define BROWSER_H
 #include <iostream>
 #include <vector>
+#include <fstream>
 
-class KeyCell{
+class Cell{
+protected:
+	int offset;
+public:
+	Cell();
+	virtual int readCell(int position, std::ifstream& stream) = 0;
+	~Cell();
+};
+
+class KeyCell : public Cell{
 private:
-	int size, parentOffset, numberOfSubkeys, subkeyListOffset, numberOfValues, valueListOffset, securityIdentityOffset;
+	int size, parentOffset, numberOfSubkeys, subkeyListOffset, numberOfValues, valueListOffset, securityIdentifierOffset;
 	long int lastWriteTime;
 	std::string name;
 	short int ID, nodeType, keyNameLength;
 public:
+	KeyCell();
+	int readCell(int position, std::ifstream& stream);
+	~KeyCell();
 };
 
-class ValueCell{
+class ValueCell : public Cell{
 private:
-	int size, dataLength, valueType;
+	int size, dataLength, valueType, dataOffset;
 	short int ID, valueNameLength;
 public:
+	ValueCell();
+	int readCell(int position, std::ifstream& stream);
+	void print();
+	~ValueCell();
 };
 
 class RegistryHive{
 private:
 	std::string filename;
-	std::vector <KeyCell> keyCells;
-	std::vector <ValueCell> valueCells;
+	std::vector <Cell*> tree;
 public:
 	RegistryHive();
 	RegistryHive(const std::string &filename);

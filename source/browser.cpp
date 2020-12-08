@@ -79,17 +79,18 @@ RegistryHive::RegistryHive(){
 }
 
 RegistryHive::RegistryHive(const std::string &filepath){
-	this->filename = filename;
+	this->filename = filepath;
 	std::ifstream file;
-	file.open("SAM", std::ifstream::binary);
+	file.open(filepath, std::ifstream::binary);
 	
-	char * registryHeader = new char[4];
+	char registryHeader[4];
 	std::string header ("regf");
 	if (file.is_open()) {
 		file.read(registryHeader, 4);
-		if (header.compare(registryHeader)) {
+		if (header.compare(registryHeader) != 0) {
 			// TODO
 			// Ensure object does not created here
+			std::cout << std::string(registryHeader) << std::endl;
 			return;
 		}
 		file.seekg(8, std::ios::cur);
@@ -99,21 +100,23 @@ RegistryHive::RegistryHive(const std::string &filepath){
 		file.read((char*)&this->length, sizeof(this->length));
 
 	}
-	char * cellHeader = new char[2];
+	char cellHeader[2];
 	while (file.good()) {
 		file.read(cellHeader, 2);
-		if (strcmp(cellHeader,"nk") == 0) {
+		if (cellHeader[0] == 'n' && cellHeader[1] == 'k') {
 			file.seekg(-6, std::ios::cur);
 			tree.emplace_back(std::make_unique<KeyCell>());
 			tree.back()->readCell(file);
 		}
-		else if (strcmp(cellHeader, "vk") == 0) {
+		else if (cellHeader[0] == 'v' && cellHeader[1] == 'k') {
 			file.seekg(-6, std::ios::cur);
 			tree.emplace_back(std::make_unique<ValueCell>());
 			tree.back()->readCell(file);
 		}
 	}
 	std::cout << "Cells created: " << std::dec << tree.size() << std::endl;
+
+	return;
 
 	for (auto& cell : tree) {
 		cell->print();

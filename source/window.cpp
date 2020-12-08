@@ -16,7 +16,7 @@ Window::Window(){
 
 	g_signal_connect(window, "delete-event", G_CALLBACK(gtk_main_quit), NULL);
 	// g_signal_connect(window, "check-resize", G_CALLBACK(rescale), this);
-	g_signal_connect(openButton, "clicked", G_CALLBACK(fileChooser), window);
+	g_signal_connect(openButton, "clicked", G_CALLBACK(fileChooser), this);
 	g_signal_connect(saveButton, "clicked", G_CALLBACK(writeChanges), window);
 
 	gtk_widget_show_all(window);
@@ -79,17 +79,24 @@ void Window::resize(){
 	gtk_widget_set_size_request(scrollWindow1, x / 2 - 5, y - 80);
 };
 
-void Window::fileChooser(GtkWidget* button, gpointer window){
+void Window::fileChooser(GtkWidget* button, Window* pointer){
+	pointer->openFile();
+}
+
+void Window::openFile(){
 	GtkWidget *fileChooserWindow = gtk_file_chooser_dialog_new("Select a file", GTK_WINDOW(window), GTK_FILE_CHOOSER_ACTION_OPEN, g_dgettext( "gtk30", "_Cancel"), GTK_RESPONSE_CANCEL, g_dgettext( "gtk30", "_Open"), GTK_RESPONSE_OK, NULL);
 	gtk_widget_show_all(fileChooserWindow);
 	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(fileChooserWindow), g_get_home_dir());
 	gint ret = gtk_dialog_run(GTK_DIALOG(fileChooserWindow));
 	if(ret == GTK_RESPONSE_OK){
 		std::string filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(fileChooserWindow));
-		// Open file here
+		std::cout << filename << std::endl;
+		openHives.push_back(new RegistryHive(filename));
 	}
 	gtk_widget_destroy(fileChooserWindow);
 }
 
 Window::~Window(){
+	for(int i = 0; i < openHives.size(); i++)
+		delete openHives[i];
 }

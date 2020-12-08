@@ -8,7 +8,7 @@
 class Window{
 // TODO Maybe switch to namespace later
 private:
-	std::vector<RegistryHive> openHives;
+	std::vector<RegistryHive*> openHives;
 	GtkWidget *window, *openButton, *saveButton, *hbox, *vbox, *buttonBox, *treeView, *scrollWindow1;
 	GtkWidget *grid;
 	GtkTreeModel *treeModel;
@@ -16,11 +16,12 @@ private:
 	void createBoxes();
 	void createTree();
 	static void rescale(GtkWidget* window, Window* pointer);
-	static void fileChooser(GtkWidget* button, gpointer window);
+	static void fileChooser(GtkWidget* button, Window* pointer);
 	static void writeChanges();
 public:
 	Window();
 	void resize();
+	void openFile();
 	~Window();
 };
 

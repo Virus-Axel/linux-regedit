@@ -2,6 +2,7 @@
 #define BROWSER_H
 
 #include <algorithm>
+#include <iterator>
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -62,7 +63,7 @@ public:
 	RegistryHive(const std::string &filepath);
 	RegistryHive(std::vector<std::byte> &buffer);
 	std::vector<std::byte> readFile(const std::string &filepath);
-	RegistryHive* operator=(const RegistryHive&);
+	RegistryHive& operator=(const RegistryHive& other);
 	int openHive(const std::string &filename);
 	~RegistryHive();
 };

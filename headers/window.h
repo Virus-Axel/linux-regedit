@@ -9,7 +9,7 @@ class Window{
 // TODO Maybe switch to namespace later
 private:
 	std::vector<RegistryHive> openHives;
-	GtkWidget *window, *openButton, *saveButton, *hbox, *vbox, *buttonBox, *treeView;
+	GtkWidget *window, *openButton, *saveButton, *hbox, *vbox, *buttonBox, *treeView, *scrollWindow1;
 	GtkWidget *grid;
 	GtkTreeModel *treeModel;
 	GtkTreeStore *treeStore;

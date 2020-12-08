@@ -30,11 +30,12 @@ void Window::createBoxes(){
 
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), buttonBox, 0, 0, 4);
-	gtk_box_pack_start(GTK_BOX(vbox), treeView, 0, 0, 4);
+	gtk_box_pack_start(GTK_BOX(vbox), scrollWindow1, 0, 0, 4);
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, 0, 0, 4);
 
+	gtk_container_add(GTK_CONTAINER(scrollWindow1), treeView);
 	gtk_container_add(GTK_CONTAINER(window), hbox);
 }
 
@@ -42,11 +43,14 @@ void Window::createTree(){
 	GtkTreeIter iterator;
 	GtkCellRenderer *renderer;
 	treeStore = gtk_tree_store_new(1, G_TYPE_STRING);
+	scrollWindow1 = gtk_scrolled_window_new(NULL, NULL);
 
+	for(int i = 0; i < 10; i++){
 	gtk_tree_store_append(treeStore, &iterator, NULL);
 	gtk_tree_store_set(treeStore, &iterator, 0, "SAM", -1);
 	gtk_tree_store_append(treeStore, &iterator, &iterator);
 	gtk_tree_store_set(treeStore, &iterator, 0, "Key", -1);
+	}
 
 	treeView = gtk_tree_view_new();
 
@@ -69,13 +73,10 @@ void Window::rescale(GtkWidget* window, Window* pointer){
 void Window::resize(){
 	gint x, y;
 	gtk_window_get_size(GTK_WINDOW(window), &x, &y);
-	std::cout << x << ", " << y << std::endl;
 	gtk_widget_set_size_request(hbox, x - 5, y - 40);
 	gtk_widget_set_size_request(vbox, x / 2 - 5, y - 40);
 	gtk_widget_set_size_request(buttonBox, x / 2 - 5, 40);
-	gtk_widget_set_size_request(treeView, x / 2 - 5, y - 80);
-	if(x > 2000 || y > 2000)
-		exit(1);
+	gtk_widget_set_size_request(scrollWindow1, x / 2 - 5, y - 80);
 };
 
 void Window::fileChooser(GtkWidget* button, gpointer window){

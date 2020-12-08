@@ -16,9 +16,12 @@ int KeyCell::readCell(std::ifstream &stream){
 	stream.read((char*)&ID, sizeof(ID));
 	stream.read((char*)&nodeType, sizeof(nodeType));
 	stream.read((char*)&lastWriteTime, sizeof(lastWriteTime));
+	stream.seekg(4, std::ios::cur);
 	stream.read((char*)&parentOffset, sizeof(parentOffset));
 	stream.read((char*)&numberOfSubkeys, sizeof(numberOfSubkeys));
+	stream.seekg(4, std::ios::cur);
 	stream.read((char*)&subkeyListOffset, sizeof(subkeyListOffset));
+	stream.seekg(4, std::ios::cur);
 	stream.read((char*)&numberOfValues, sizeof(numberOfValues));
 	stream.read((char*)&valueListOffset, sizeof(valueListOffset));
 	stream.read((char*)&securityIdentifierOffset, sizeof(securityIdentifierOffset));
@@ -117,6 +120,7 @@ RegistryHive::RegistryHive(const std::string &filepath){
 
 	for (auto& cell : tree) {
 		cell->print();
+		std::cout << std::endl;
 	}
 }
 
@@ -134,8 +138,6 @@ auto makeInteger(std::array<std::byte, SIZE> &bytes) {
 
 RegistryHive::RegistryHive(std::vector<std::byte> &buffer) {
 	auto HEADER = makeBytes(0x72, 0x65, 0x67, 0x66); // regf
-	std::byte test{0x0FFFFFFF};
-	std::cout << std::to_integer<int>(test) << std::endl;
 	std::array<std::byte, 4> header;
 	std::copy_n(buffer.begin(), header.size(), header.begin());
 

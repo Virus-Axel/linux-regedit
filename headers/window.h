@@ -10,14 +10,17 @@ class Window{
 private:
 	std::vector<RegistryHive> openHives;
 	GtkWidget *window, *openButton, *saveButton, *hbox, *vbox, *buttonBox, *treeView;
+	GtkWidget *grid;
 	GtkTreeModel *treeModel;
 	GtkTreeStore *treeStore;
 	void createBoxes();
 	void createTree();
-public:
-	Window();
+	static void rescale(GtkWidget* window, Window* pointer);
 	static void fileChooser(GtkWidget* button, gpointer window);
 	static void writeChanges();
+public:
+	Window();
+	void resize();
 	~Window();
 };
 

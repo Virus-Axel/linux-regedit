@@ -21,7 +21,7 @@ $(TARGET) : $(OBJECTS)
 	$(LD) $^ $(LDFLAGS_COMMON) -o $(TARGET)
 
 $(OBJECTS_DIR)/%.o: $(SOURCE_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@ $(LDFLAGS_COMMON)
 
 clean:
 	$(RM) $(TARGET) $(OBJECTS)

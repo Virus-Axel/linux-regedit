@@ -2,20 +2,61 @@
 
 Window::Window(){
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	buttonBox = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
-	button = gtk_button_new_with_label("Open hive");
+	openButton = gtk_button_new_with_label("Open hive");
+	saveButton = gtk_button_new_with_label("Write changes");
 
 	gtk_window_set_title(GTK_WINDOW(window), "linux-regedit");
 	gtk_window_set_default_size(GTK_WINDOW(window), 800, 400);
 
-	gtk_container_add(GTK_CONTAINER(window), buttonBox);
-	gtk_container_add(GTK_CONTAINER(buttonBox), button);
+	createTree();
+	createBoxes();
+	//gtk_widget_set_size_request(buttonBox, 200, 60);
 
 	g_signal_connect(window, "delete-event", G_CALLBACK(gtk_main_quit), NULL);
-	g_signal_connect(button, "clicked", G_CALLBACK(fileChooser), window);
+	g_signal_connect(openButton, "clicked", G_CALLBACK(fileChooser), window);
+	g_signal_connect(saveButton, "clicked", G_CALLBACK(writeChanges), window);
 
 	gtk_widget_show_all(window);
 	gtk_main();
+}
+
+void Window::createBoxes(){
+	buttonBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_box_pack_start(GTK_BOX(buttonBox), openButton, 0, 0, 0);
+	gtk_box_pack_start(GTK_BOX(buttonBox), saveButton, 0, 0, 4);
+
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+	gtk_box_pack_start(GTK_BOX(vbox), buttonBox, 0, 0, 4);
+	gtk_box_pack_start(GTK_BOX(vbox), treeView, 0, 0, 4);
+
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+	gtk_box_pack_start(GTK_BOX(hbox), vbox, 0, 0, 4);
+
+	gtk_container_add(GTK_CONTAINER(window), hbox);
+}
+
+void Window::createTree(){
+	GtkTreeIter iterator;
+	GtkCellRenderer *renderer;
+	treeStore = gtk_tree_store_new(1, G_TYPE_STRING);
+
+	gtk_tree_store_append(treeStore, &iterator, NULL);
+	gtk_tree_store_set(treeStore, &iterator, 0, "SAM", -1);
+	gtk_tree_store_append(treeStore, &iterator, &iterator);
+	gtk_tree_store_set(treeStore, &iterator, 0, "Key", -1);
+
+	treeView = gtk_tree_view_new();
+
+	renderer = gtk_cell_renderer_text_new();
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(treeView), -1, "Registry cells", renderer, "text", 0, NULL);
+
+	treeModel = GTK_TREE_MODEL(treeStore);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(treeView), treeModel);
+	g_object_unref(treeModel);
+}
+
+void Window::writeChanges(){
+
 }
 
 void Window::fileChooser(GtkWidget* button, gpointer window){

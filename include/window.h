@@ -22,6 +22,7 @@ public:
 	Window();
 	void resize();
 	void openFile();
+	void populateTree();
 	~Window();
 };
 

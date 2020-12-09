@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cstddef>
-#include <window.h>
 
-#include "browser.h"
+#include <window.h>
+#include <browser.h>
 
 std::vector<std::byte> readFile(const std::string &filepath);
 

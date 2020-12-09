@@ -45,12 +45,12 @@ void Window::createTree(){
 	treeStore = gtk_tree_store_new(1, G_TYPE_STRING);
 	scrollWindow1 = gtk_scrolled_window_new(NULL, NULL);
 
-	for(int i = 0; i < 10; i++){
+	/*for(int i = 0; i < 10; i++){
 	gtk_tree_store_append(treeStore, &iterator, NULL);
 	gtk_tree_store_set(treeStore, &iterator, 0, "SAM", -1);
 	gtk_tree_store_append(treeStore, &iterator, &iterator);
 	gtk_tree_store_set(treeStore, &iterator, 0, "Key", -1);
-	}
+	}*/
 
 	treeView = gtk_tree_view_new();
 
@@ -90,10 +90,37 @@ void Window::openFile(){
 	gint ret = gtk_dialog_run(GTK_DIALOG(fileChooserWindow));
 	if(ret == GTK_RESPONSE_OK){
 		std::string filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(fileChooserWindow));
-		std::cout << filename << std::endl;
 		openHives.push_back(new RegistryHive(filename));
+		populateTree();
 	}
 	gtk_widget_destroy(fileChooserWindow);
+}
+
+void Window::populateTree(){
+	GtkTreeIter iterator, parent;
+	treeModel = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
+	g_object_ref(treeModel);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(treeView), NULL);
+	treeStore = GTK_TREE_STORE(treeModel);
+	for(unsigned int i = 0; i < openHives.size(); i++){
+		gtk_tree_store_append(treeStore, &parent, NULL);
+		gtk_tree_store_set(treeStore, &parent, 0, openHives[i]->getName().c_str(), -1);
+		for(unsigned int j = 0; j < openHives[i]->tree.size(); j++){
+			if(openHives[i]->tree[j].get()->getType() == KEY_CELL){
+				KeyCell* keyCell = (KeyCell*) openHives[i]->tree[j].get();
+				gtk_tree_store_append(treeStore, &iterator, &parent);
+				gtk_tree_store_set(treeStore, &iterator, 0, keyCell->name.c_str(), -1);
+			}
+			else if(openHives[i]->tree[j].get()->getType() == VALUE_CELL){
+				ValueCell* valueCell = (ValueCell*) openHives[i]->tree[j].get();
+				gtk_tree_store_append(treeStore, &iterator, &parent);
+				gtk_tree_store_set(treeStore, &iterator, 0, valueCell->name.c_str(), -1);
+			}
+		}
+	}
+	treeModel = GTK_TREE_MODEL(treeStore);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(treeView), treeModel);
+	g_object_unref(treeModel);
 }
 
 Window::~Window(){

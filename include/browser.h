@@ -14,13 +14,18 @@
 #include <time.h>
 #include <string.h>
 
+#define KEY_CELL 0x6B6E
+#define VALUE_CELL 0x6B76
+
 class Cell{
+// TODO: put ID here and make getType one function
 protected:
 	int offset;
 public:
 	Cell();
 	virtual int readCell(std::ifstream& stream) = 0;
 	virtual void print() = 0;
+	virtual short int getType() = 0;
 	virtual ~Cell();
 };
 
@@ -28,12 +33,13 @@ class KeyCell : public Cell{
 private:
 	int size, parentOffset, numberOfSubkeys, subkeyListOffset, numberOfValues, valueListOffset, securityIdentifierOffset;
 	long int lastWriteTime;
-	std::string name;
 	short int ID, nodeType, keyNameLength;
 public:
+	std::string name;
 	KeyCell();
 	int readCell(std::ifstream& stream) override;
 	void print() override;
+	short int getType() override;
 	~KeyCell();
 };
 
@@ -42,9 +48,11 @@ private:
 	int offset, size, dataLength, valueType, dataOffset;
 	short int ID, valueNameLength;
 public:
+	std::string name;
 	ValueCell();
 	int readCell(std::ifstream& stream) override;
 	void print() override;
+	short int getType() override;
 	~ValueCell();
 };
 
@@ -57,9 +65,10 @@ private:
 	int rootCellOffset;
 	int length;
 	std::string name;
-	std::vector <std::unique_ptr<Cell>> tree;
 public:
+	std::vector <std::unique_ptr<Cell>> tree;
 	RegistryHive();
+	std::string getName();
 	RegistryHive(const std::string &filepath);
 	RegistryHive(std::vector<std::byte> &buffer);
 	std::vector<std::byte> readFile(const std::string &filepath);

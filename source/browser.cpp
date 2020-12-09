@@ -46,6 +46,10 @@ void KeyCell::print() {
 
 }
 
+short int KeyCell::getType(){
+	return ID;
+}
+
 ValueCell::ValueCell() : Cell(){
 	
 }
@@ -70,6 +74,10 @@ void ValueCell::print(){
 	std::cout << "data length: " << this->dataLength << std::endl;
 	std::cout << "data offset: " << this->dataOffset << std::endl;
 	std::cout << "value type: " << this->valueType << std::endl;
+}
+
+short int ValueCell::getType(){
+	return ID;
 }
 
 ValueCell::~ValueCell(){
@@ -151,6 +159,10 @@ RegistryHive::RegistryHive(std::vector<std::byte> &buffer) {
 
 	
 
+}
+
+std::string RegistryHive::getName(){
+	return this->filename;
 }
 
 RegistryHive::~RegistryHive() {

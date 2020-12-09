@@ -23,19 +23,6 @@ public:
 	virtual ~Cell();
 };
 
-class KeyCell : public Cell{
-private:
-	int size, parentOffset, numberOfSubkeys, subkeyListOffset, numberOfValues, valueListOffset, securityIdentifierOffset;
-	long int lastWriteTime;
-	std::string name;
-	short int ID, nodeType, keyNameLength;
-public:
-	KeyCell();
-	int readCell(std::ifstream& stream) override;
-	void print() override;
-	~KeyCell();
-};
-
 class ValueCell : public Cell{
 private:
 	int offset, size, dataLength, valueType, dataOffset;
@@ -46,6 +33,23 @@ public:
 	void print() override;
 	~ValueCell();
 };
+
+class KeyCell : public Cell{
+private:
+	int size, parentOffset, numberOfSubkeys, subkeyListOffset, numberOfValues, valueListOffset, securityIdentifierOffset;
+	long int lastWriteTime;
+	std::string name;
+	short int ID, nodeType, keyNameLength;
+	std::vector<KeyCell> subKeys;
+	std::vector<ValueCell> values;
+public:
+	KeyCell();
+	int readCell(std::ifstream& stream) override;
+	void print() override;
+	~KeyCell();
+};
+
+
 
 class RegistryHive{
 private:

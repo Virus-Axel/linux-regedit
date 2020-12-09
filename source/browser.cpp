@@ -81,10 +81,46 @@ ValueCell::~ValueCell(){
 RegistryHive::RegistryHive(){
 }
 
+template<typename ... Ts>
+std::array<std::byte, sizeof...(Ts)>
+makeBytes(Ts&&... args) noexcept {
+	return {std::byte(std::forward<Ts>(args))...};
+}
+
+template<typename T>
+struct reversionWrapper { T& iterable; };
+
+template<typename T>
+auto begin(reversionWrapper<T> w) {
+	return std::rbegin(w.iterable);
+}
+
+template<typename T>
+auto end(reversionWrapper<T> w) {
+	return std::rend(w.iterable);
+}
+
+template <typename T>
+reversionWrapper<T> reverse(T&& iterable) {
+	return { iterable };
+}
+
+template<std::size_t SIZE, typename T>
+auto makeInteger(std::array<std::byte, SIZE> &bytes, T &result, bool littleEndian = true) {
+	result = 0;
+	if (littleEndian)
+		for (auto &&i : reverse(bytes))
+			result = (result << 8) + std::to_integer<T>(i);
+	else
+		for (auto &&i : bytes)
+			result = (result << 8) + std::to_integer<T>(i);
+	return result;
+}
+
 RegistryHive::RegistryHive(const std::string &filepath){
-	this->filename = filename;
+	this->filename = filepath;
 	std::ifstream file;
-	file.open("SAM", std::ifstream::binary);
+	file.open(this->filename, std::ifstream::binary);
 	
 	char * registryHeader = new char[4];
 	std::string header ("regf");
@@ -119,21 +155,12 @@ RegistryHive::RegistryHive(const std::string &filepath){
 	std::cout << "Cells created: " << std::dec << tree.size() << std::endl;
 
 	for (auto& cell : tree) {
-		cell->print();
-		std::cout << std::endl;
+		//cell->print();
+		//std::cout << std::endl;
 	}
 }
 
-template<typename ... Ts>
-std::array<std::byte, sizeof...(Ts)>
-makeBytes(Ts&&... args) noexcept {
-	return {std::byte(std::forward<Ts>(args))...};
-}
 
-template<std::size_t SIZE>
-auto makeInteger(std::array<std::byte, SIZE> &bytes) {
-
-}
 
 
 RegistryHive::RegistryHive(std::vector<std::byte> &buffer) {

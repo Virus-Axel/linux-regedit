@@ -8,6 +8,8 @@ Window::Window(){
 
 	openButton = gtk_button_new_with_label("Open hive");
 	saveButton = gtk_button_new_with_label("Write changes");
+	copyNameButton = gtk_button_new_with_label("Copy name");
+	copyValueButton = gtk_button_new_with_label("Copy value");
 	
 	createTree();
 	createList();
@@ -15,11 +17,11 @@ Window::Window(){
 
 	resize();
 
-	g_signal_connect(G_OBJECT(window), "delete-event", G_CALLBACK(gtk_main_quit), NULL);
+	signalClose = g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 	// g_signal_connect(window, "check-resize", G_CALLBACK(rescale), this);
-	g_signal_connect(G_OBJECT(openButton), "clicked", G_CALLBACK(fileChooser), this);
-	g_signal_connect(G_OBJECT(saveButton), "clicked", G_CALLBACK(writeChanges), window);
-	g_signal_connect(G_OBJECT(treeView), "cursor-changed", G_CALLBACK(cursorChanged), this);
+	signalOpen = g_signal_connect(openButton, "clicked", G_CALLBACK(fileChooser), this);
+	signalWrite = g_signal_connect(saveButton, "clicked", G_CALLBACK(writeChanges), NULL);
+	signalCursorChange = g_signal_connect(treeView, "cursor-changed", G_CALLBACK(cursorChanged), this);
 
 	gtk_widget_show_all(window);
 	gtk_main();
@@ -27,16 +29,25 @@ Window::Window(){
 
 void Window::createBoxes(){
 	buttonBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	copyButtonBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+
 	gtk_box_pack_start(GTK_BOX(buttonBox), openButton, 0, 0, 0);
 	gtk_box_pack_start(GTK_BOX(buttonBox), saveButton, 0, 0, 4);
+
+	gtk_box_pack_start(GTK_BOX(copyButtonBox), copyNameButton, 0, 0, 0);
+	gtk_box_pack_start(GTK_BOX(copyButtonBox), copyValueButton, 0, 0, 4);
 
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), buttonBox, 0, 0, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), scrollWindow1, 0, 0, 4);
 
+	gtk_box_pack_start(GTK_BOX(box), copyButtonBox, 0, 0, 4);
+	gtk_box_pack_start(GTK_BOX(box), scrollWindow2, 0, 0, 4);
+
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, 0, 0, 4);
-	gtk_box_pack_start(GTK_BOX(hbox), scrollWindow2, 0, 0, 4);
+	gtk_box_pack_start(GTK_BOX(hbox), box, 0, 0, 4);
 
 	gtk_container_add(GTK_CONTAINER(scrollWindow1), treeView);
 	gtk_container_add(GTK_CONTAINER(scrollWindow2), listView);
@@ -120,12 +131,26 @@ void Window::rescale(GtkWidget* window, Window* pointer){
 	pointer->resize();
 }
 
+void Window::destroyWindow(GtkWidget* window, Window* pointer){
+	pointer->close();
+}
+
+void Window::close(){
+	g_signal_handler_disconnect(window, signalClose);
+	g_signal_handler_disconnect(openButton, signalOpen);
+	g_signal_handler_disconnect(saveButton, signalWrite);
+	g_signal_handler_disconnect(treeView, signalCursorChange);
+	std::cout << "hello" << std::endl;
+	gtk_main_quit();
+}
+
 void Window::resize(){
 	gint x, y;
 	gtk_window_get_size(GTK_WINDOW(window), &x, &y);
 	gtk_widget_set_size_request(hbox, x, y - 40);
 	gtk_widget_set_size_request(vbox, x / 2 - 5, y - 40);
 	gtk_widget_set_size_request(buttonBox, x / 2 - 5, 40);
+	gtk_widget_set_size_request(copyButtonBox, x / 2 - 5, 40);
 	gtk_widget_set_size_request(scrollWindow1, x / 2 - 5, y - 80);
 	gtk_widget_set_size_request(scrollWindow2, x / 2 - 5, y - 80);
 };

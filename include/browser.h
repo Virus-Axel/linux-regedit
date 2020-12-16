@@ -40,19 +40,26 @@ public:
 	int readCell(std::ifstream& stream) override;
 	void print() override;
 	short int getType() override;
+	int getSize();
+	time_t *getLastWriteTime();
+	int getNumberOfValues();
 	~KeyCell();
 };
 
 class ValueCell : public Cell{
 private:
-	int offset, size, dataLength, valueType, dataOffset;
+	int offset, dataLength, valueType, dataOffset;
 	short int ID, valueNameLength;
+	int size;
 public:
 	std::string name;
 	ValueCell();
 	int readCell(std::ifstream& stream) override;
 	void print() override;
 	short int getType() override;
+	int getSize();
+	int getDataLength();
+	int getValueType();
 	~ValueCell();
 };
 

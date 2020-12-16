@@ -50,6 +50,18 @@ short int KeyCell::getType(){
 	return ID;
 }
 
+int KeyCell::getSize(){
+	return size;
+}
+
+time_t *KeyCell::getLastWriteTime(){
+	return &lastWriteTime;
+}
+
+int KeyCell::getNumberOfValues(){
+	return numberOfValues;
+}
+
 ValueCell::ValueCell() : Cell(){
 	
 }
@@ -78,6 +90,18 @@ void ValueCell::print(){
 
 short int ValueCell::getType(){
 	return ID;
+}
+
+int ValueCell::getSize(){
+	return size;
+}
+
+int ValueCell::getDataLength(){
+	return dataLength;
+}
+
+int ValueCell::getValueType(){
+	return valueType;
 }
 
 ValueCell::~ValueCell(){

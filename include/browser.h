@@ -39,8 +39,8 @@ private:
 	unsigned int offset;
 	int size, dataLength, valueType, dataOffset;
 	short int ID, valueNameLength;
-	std::string name;
 public:
+	std::string name;
 	ValueCell();
 	ValueCell(const std::vector<std::byte> &buffer, size_t offset);
 	int readCell(std::ifstream& stream) override;
@@ -59,9 +59,9 @@ private:
 	int size, parentOffset, numberOfSubkeys, subkeyListOffset, numberOfValues, valueListOffset, securityIdentifierOffset;
 	long int lastWriteTime;
 	short int ID, nodeType, keyNameLength;
+public:
 	std::vector<std::unique_ptr<KeyCell>> subKeys;
 	std::vector<std::unique_ptr<ValueCell>> values;
-public:
 	std::string name;
 	KeyCell();
 	KeyCell(const std::vector<std::byte> &buffer, size_t offset);
@@ -71,6 +71,7 @@ public:
 	short int getType() override;
 	unsigned int getOffset() override;
 	int getSize() override;
+	std::vector <std::unique_ptr<KeyCell>> &getSubKeys();
 	time_t *getLastWriteTime();
 	int getNumberOfValues();
 	~KeyCell();
@@ -87,18 +88,19 @@ private:
 	int hbinOffset;
 	int length;
 	std::string name;
-	std::vector <std::unique_ptr<KeyCell>> tree;
 	std::vector <std::unique_ptr<Cell>> oldTree;
 public:
 	//std::vector <std::unique_ptr<Cell>> tree;
+	std::vector <std::unique_ptr<KeyCell>> tree;
 	RegistryHive();
 	std::string getName();
-	RegistryHive(const std::string &filepath) : RegistryHive(readFile(filepath)) {}
+	std::vector <std::unique_ptr<KeyCell>> &getTree();
+	RegistryHive(const std::string &filepath);
 	RegistryHive(const std::vector<std::byte> &buffer);
 	std::vector<std::byte> readFile(const std::string &filepath);
 	std::vector<std::unique_ptr<Cell>> getCells(const std::vector<std::byte> &buffer);
 
-	RegistryHive* operator=(const RegistryHive&);
+	RegistryHive& operator=(const RegistryHive&);
 	int openHive(const std::string &filename);
 	~RegistryHive();
 };

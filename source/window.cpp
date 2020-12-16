@@ -148,6 +148,20 @@ void Window::fileChooser(){
 	gtk_widget_destroy(fileChooserWindow);
 }
 
+void Window::appendKey(GtkTreeStore *treeStore, GtkTreeIter *parent, KeyCell* key){
+	std::cout << key->name << std::endl;
+	GtkTreeIter iterator, newParent;
+	gtk_tree_store_append(treeStore, &newParent, parent);
+	gtk_tree_store_set(treeStore, &newParent, 0, key->name.c_str(), 1, (void*) key, -1);
+	for(unsigned int i = 0; i < key->subKeys.size(); i++){
+		appendKey(treeStore, &newParent, key->subKeys[i].get());
+	}
+	for(unsigned int i = 0; i < key->values.size(); i++){
+		gtk_tree_store_append(treeStore, &iterator, &newParent);
+		gtk_tree_store_set(treeStore, &iterator, 0, key->values[i]->name.c_str(), 1, (void*) key->values[i].get(), -1);
+	}
+}
+
 void Window::populateTree(){
 	GtkTreeIter iterator, parent;
 	GtkTreeModel *treeModel = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
@@ -159,16 +173,8 @@ void Window::populateTree(){
 		gtk_tree_store_append(treeStore, &parent, NULL);
 		gtk_tree_store_set(treeStore, &parent, 0, openHives[i]->getName().c_str(), 1, NULL, -1);
 		for(unsigned int j = 0; j < openHives[i]->tree.size(); j++){
-			if(openHives[i]->tree[j].get()->getType() == KEY_CELL){
-				KeyCell* keyCell = (KeyCell*) openHives[i]->tree[j].get();
-				gtk_tree_store_append(treeStore, &iterator, &parent);
-				gtk_tree_store_set(treeStore, &iterator, 0, keyCell->name.c_str(), 1, (void*) openHives[i]->tree[j].get(), -1);
-			}
-			else if(openHives[i]->tree[j].get()->getType() == VALUE_CELL){
-				ValueCell* valueCell = (ValueCell*) openHives[i]->tree[j].get();
-				gtk_tree_store_append(treeStore, &iterator, &parent);
-				gtk_tree_store_set(treeStore, &iterator, 0, "value", 1, (void*) openHives[i]->tree[j].get(), -1);
-			}
+			KeyCell* keyCell = openHives[i]->tree[j].get();
+			appendKey(treeStore, &parent, keyCell);
 		}
 	}
 	treeModel = GTK_TREE_MODEL(treeStore);

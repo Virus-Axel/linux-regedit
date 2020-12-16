@@ -156,6 +156,10 @@ short int KeyCell::getType(){
 	return ID;
 }
 
+std::vector<std::unique_ptr<KeyCell>> &KeyCell::getSubKeys(){
+	return subKeys;
+}
+
 int KeyCell::getSize(){
 	return size;
 }
@@ -181,6 +185,12 @@ ValueCell::ValueCell(const std::vector<std::byte> &buffer, size_t offset) : Cell
 	readOffset += vectorToInteger(buffer, readOffset, this->dataLength);
 	readOffset += vectorToInteger(buffer, readOffset, this->dataOffset);
 	readOffset += vectorToInteger(buffer, readOffset, this->valueType);
+	readOffset += 4;
+	if(this->valueNameLength == 0){
+		name = "(Default)";
+	}
+	for (size_t i = 0; i < this->valueNameLength; i++)
+		this->name.push_back(std::to_integer<char>(buffer.at(readOffset + i)));
 }
 
 int ValueCell::readCell(std::ifstream &stream){
@@ -280,7 +290,13 @@ std::vector<std::byte> RegistryHive::readFile(const std::string &filepath) {
 	return buffer;
 }
 
+std::vector<std::unique_ptr<KeyCell>> &RegistryHive::getTree(){
+	return tree;
+}
 
+RegistryHive::RegistryHive(const std::string &filepath) : RegistryHive::RegistryHive(readFile(filepath)){
+	this->filename = filepath;
+}
 
 RegistryHive::RegistryHive(const std::vector<std::byte> &buffer) {
 	auto HEADER = makeBytes(0x72, 0x65, 0x67, 0x66); // regf
@@ -321,7 +337,6 @@ RegistryHive::RegistryHive(const std::vector<std::byte> &buffer) {
 	// 			[](const std::byte &e) {
 	// 				std::cout << std::to_integer<int>(e) << " ";
 	// 			});
-
 }
 
 std::string RegistryHive::getName(){

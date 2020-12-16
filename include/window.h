@@ -19,6 +19,7 @@ namespace Window{
 	static void writeChanges();
 	static void cursorChanged();
 	void start();
+	void appendKey(GtkTreeStore *treeStore, GtkTreeIter *parent, KeyCell* key);
 	void populateTree();
 	void populateList(Cell* cell);
 	void exit();

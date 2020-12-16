@@ -4,29 +4,24 @@
 #include <gtk/gtk.h>
 #include <vector>
 #include <browser.h>
+#include <sstream>
+#include <time.h>
 
-class Window{
-// TODO Maybe switch to namespace later
-private:
-	std::vector<RegistryHive*> openHives;
-	GtkWidget *window, *openButton, *saveButton, *copyNameButton, *copyValueButton, *hbox, *vbox, *buttonBox, *treeView, *listView, *scrollWindow1, *scrollWindow2, *box, *copyButtonBox;
-	glong signalClose, signalOpen, signalWrite, signalCursorChange;
+namespace Window{
+	static std::vector<RegistryHive*> openHives;
+	static GtkWidget *window, *openButton, *saveButton, *copyNameButton, *copyValueButton, *hbox, *vbox, *buttonBox, *treeView, *listView, *scrollWindow1, *scrollWindow2, *box, *copyButtonBox;
+	static glong signalClose, signalOpen, signalWrite, signalCursorChange;
 	void createBoxes();
 	void createTree();
 	void createList();
-	static void rescale(GtkWidget* window, Window* pointer);
-	static void fileChooser(GtkWidget* button, Window* pointer);
+	static void rescale();
+	static void fileChooser();
 	static void writeChanges();
-	static void cursorChanged(GtkWidget* parent, Window* pointer);
-	static void destroyWindow(GtkWidget* parent, Window* pointer);
-public:
-	Window();
-	void resize();
-	void openFile();
+	static void cursorChanged();
+	void start();
 	void populateTree();
-	void displayCell();
-	void close();
-	~Window();
-};
+	void populateList(Cell* cell);
+	void exit();
+}
 
 #endif

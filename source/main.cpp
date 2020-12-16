@@ -38,5 +38,6 @@ int main(int argc, char *argv[]) {
     
     //RegistryHive hive = RegistryHive(hiveFile);
 	gtk_init(&argc, &argv);
-	Window gui;
+	Window::start();
+	Window::exit();
 }

@@ -9,6 +9,8 @@
 #include <iomanip>
 #include <memory>
 #include <cstddef>
+#include <map>
+#include <thread>
 
 #include <errno.h>
 #include <time.h>
@@ -16,52 +18,64 @@
 
 #define KEY_CELL 0x6B6E
 #define VALUE_CELL 0x6B76
+#define HBIN 4096
 
 class Cell{
 // TODO: put ID here and make getType one function
 protected:
-	int offset;
+	unsigned int offset;
 public:
 	Cell();
 	virtual int readCell(std::ifstream& stream) = 0;
 	virtual void print() = 0;
 	virtual short int getType() = 0;
+	virtual unsigned int getOffset() = 0;
+	virtual int getSize() = 0;
 	virtual ~Cell();
+};
+
+class ValueCell : public Cell{
+private:
+	unsigned int offset;
+	int size, dataLength, valueType, dataOffset;
+	short int ID, valueNameLength;
+	std::string name;
+public:
+	ValueCell();
+	ValueCell(const std::vector<std::byte> &buffer, size_t offset);
+	int readCell(std::ifstream& stream) override;
+	void print() override;
+	unsigned int getOffset() override;
+	int getSize() override;
+	short int getType() override;
+	int getDataLength();
+	int getValueType();
+	~ValueCell();
 };
 
 class KeyCell : public Cell{
 private:
+	unsigned int offset;
 	int size, parentOffset, numberOfSubkeys, subkeyListOffset, numberOfValues, valueListOffset, securityIdentifierOffset;
 	long int lastWriteTime;
 	short int ID, nodeType, keyNameLength;
+	std::vector<std::unique_ptr<KeyCell>> subKeys;
+	std::vector<std::unique_ptr<ValueCell>> values;
 public:
 	std::string name;
 	KeyCell();
+	KeyCell(const std::vector<std::byte> &buffer, size_t offset);
+	void makeTree(const std::vector<std::byte> &buffer, std::map<unsigned int, std::unique_ptr<Cell>> &cellMap);
 	int readCell(std::ifstream& stream) override;
 	void print() override;
 	short int getType() override;
-	int getSize();
+	unsigned int getOffset() override;
+	int getSize() override;
 	time_t *getLastWriteTime();
 	int getNumberOfValues();
 	~KeyCell();
 };
 
-class ValueCell : public Cell{
-private:
-	int offset, dataLength, valueType, dataOffset;
-	short int ID, valueNameLength;
-	int size;
-public:
-	std::string name;
-	ValueCell();
-	int readCell(std::ifstream& stream) override;
-	void print() override;
-	short int getType() override;
-	int getSize();
-	int getDataLength();
-	int getValueType();
-	~ValueCell();
-};
 
 class RegistryHive{
 private:
@@ -70,16 +84,21 @@ private:
 	int majorVersion;
 	int minorVersion;
 	int rootCellOffset;
+	int hbinOffset;
 	int length;
 	std::string name;
+	std::vector <std::unique_ptr<KeyCell>> tree;
+	std::vector <std::unique_ptr<Cell>> oldTree;
 public:
-	std::vector <std::unique_ptr<Cell>> tree;
+	//std::vector <std::unique_ptr<Cell>> tree;
 	RegistryHive();
 	std::string getName();
-	RegistryHive(const std::string &filepath);
-	RegistryHive(std::vector<std::byte> &buffer);
+	RegistryHive(const std::string &filepath) : RegistryHive(readFile(filepath)) {}
+	RegistryHive(const std::vector<std::byte> &buffer);
 	std::vector<std::byte> readFile(const std::string &filepath);
-	RegistryHive& operator=(const RegistryHive& other);
+	std::vector<std::unique_ptr<Cell>> getCells(const std::vector<std::byte> &buffer);
+
+	RegistryHive* operator=(const RegistryHive&);
 	int openHive(const std::string &filename);
 	~RegistryHive();
 };

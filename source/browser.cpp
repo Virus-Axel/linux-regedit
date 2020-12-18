@@ -183,7 +183,17 @@ ValueCell::ValueCell(const std::vector<std::byte> &buffer, size_t offset) : Cell
 	readOffset += vectorToInteger(buffer, readOffset, this->ID);
 	readOffset += vectorToInteger(buffer, readOffset, this->valueNameLength);
 	readOffset += vectorToInteger(buffer, readOffset, this->dataLength);
-	readOffset += vectorToInteger(buffer, readOffset, this->dataOffset);
+	if(this->dataLength < 0) {
+		this->dataOffset = 0;
+		readOffset += sizeof(this->dataOffset);
+		for (size_t i = 4; i < this->dataLength - 0x80000000; i--) 
+			this->data.push_back(std::to_integer<char>(buffer.at(readOffset + i)));
+	}
+	else {
+		readOffset += vectorToInteger(buffer, readOffset, this->dataOffset);
+		for (size_t i = 0; i < this->dataLength; i++)
+			this->data.push_back(std::to_integer<char>(buffer.at(this->dataOffset + HBIN + i)));
+	}
 	readOffset += vectorToInteger(buffer, readOffset, this->valueType);
 	readOffset += 4;
 	if(this->valueNameLength == 0){
@@ -213,6 +223,7 @@ void ValueCell::print(){
 	std::cout << "data length: " << this->dataLength << std::endl;
 	std::cout << "data offset: " << this->dataOffset << std::endl;
 	std::cout << "value type: " << this->valueType << std::endl;
+	std::cout << this->data << std::endl;
 }
 
 short int ValueCell::getType(){

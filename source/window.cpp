@@ -14,6 +14,8 @@ void Window::start(){
 	createTree();
 	createList();
 	createBoxes();
+	
+	textBuffer = gtk_text_buffer_new(NULL);
 
 	rescale();
 
@@ -55,7 +57,7 @@ void Window::createBoxes(){
 
 	gtk_container_add(GTK_CONTAINER(scrollWindow1), treeView);
 	gtk_container_add(GTK_CONTAINER(scrollWindow2), listView1);
-	gtk_container_add(GTK_CONTAINER(scrollWindow3), listView2);
+	gtk_container_add(GTK_CONTAINER(scrollWindow3), textView);
 	gtk_container_add(GTK_CONTAINER(window), hbox);
 }
 
@@ -82,7 +84,7 @@ void Window::createList(){
 	scrollWindow3 = gtk_scrolled_window_new(NULL, NULL);
 
 	listView1 = gtk_tree_view_new();
-	listView2 = gtk_tree_view_new();
+	textView = gtk_text_view_new();
 
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView1), -1, "Header field", renderer, "text", 0, NULL);
@@ -90,12 +92,8 @@ void Window::createList(){
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView1), -1, "Value", renderer, "text", 1, NULL);
 
-	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView2), -1, "Hex data", renderer, "text", 1, NULL);
-
 	GtkTreeModel* model = GTK_TREE_MODEL(listStore);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(listView1), model);
-	gtk_tree_view_set_model(GTK_TREE_VIEW(listView2), model);
 
 	g_object_unref(model);
 }
@@ -211,9 +209,16 @@ void Window::populateList(Cell* cell){
 		gtk_list_store_set(listStore1, &iterator, 0, "Data length", 1, std::to_string(valueCell->getDataLength()).c_str(), -1);
 		gtk_list_store_append(listStore1, &iterator);
 		gtk_list_store_set(listStore1, &iterator, 0, "Value type", 1, std::to_string(valueCell->getValueType()).c_str(), -1);
-		gtk_list_store_append(listStore1, &iterator);
-		//ss << std::hex << valueCell->getData();
-		//gtk_list_store_set(listStore1, &iterator, 0, ss.c_str(), -1);
+
+		ss << std::hex << std::setfill('0');
+		std::string data = valueCell->getData();
+		for(int i = 0; i < data.size(); i++)
+			ss << std::setw(2) << static_cast<unsigned>(data[i]);
+
+
+		gtk_text_buffer_set_text(textBuffer, ss.str().c_str(), ss.str().size());
+
+		gtk_text_view_set_buffer(GTK_TEXT_VIEW(textView), textBuffer);
 	}
 	else if(cell->getType() == KEY_CELL){
 		KeyCell* keyCell = (KeyCell*)cell;

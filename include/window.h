@@ -9,8 +9,9 @@
 
 namespace Window{
 	static std::vector<RegistryHive*> openHives;
-	static GtkWidget *window, *openButton, *saveButton, *copyNameButton, *copyValueButton, *hbox, *vbox, *buttonBox, *treeView, *listView1, *listView2, *scrollWindow1, *scrollWindow2, *scrollWindow3, *scrollWindowBox, *box, *copyButtonBox;
+	static GtkWidget *window, *openButton, *saveButton, *copyNameButton, *copyValueButton, *hbox, *vbox, *buttonBox, *treeView, *listView1, *textView, *scrollWindow1, *scrollWindow2, *scrollWindow3, *scrollWindowBox, *box, *copyButtonBox;
 	static glong signalClose, signalOpen, signalWrite, signalCursorChange;
+	static GtkTextBuffer *textBuffer;
 	void createBoxes();
 	void createTree();
 	void createList();

@@ -39,6 +39,7 @@ private:
 	unsigned int offset;
 	int size, dataLength, valueType, dataOffset;
 	short int ID, valueNameLength;
+	std::string data;
 public:
 	std::string name;
 	ValueCell();

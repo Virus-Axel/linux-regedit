@@ -31,6 +31,7 @@ void Window::createBoxes(){
 	buttonBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	copyButtonBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+	scrollWindowBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
 	gtk_box_pack_start(GTK_BOX(buttonBox), openButton, 0, 0, 0);
 	gtk_box_pack_start(GTK_BOX(buttonBox), saveButton, 0, 0, 4);
@@ -42,15 +43,19 @@ void Window::createBoxes(){
 	gtk_box_pack_start(GTK_BOX(vbox), buttonBox, 0, 0, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), scrollWindow1, 0, 0, 4);
 
+	gtk_box_pack_start(GTK_BOX(scrollWindowBox), scrollWindow2, 0, 0, 0);
+	gtk_box_pack_start(GTK_BOX(scrollWindowBox), scrollWindow3, 0, 0, 0);
+
 	gtk_box_pack_start(GTK_BOX(box), copyButtonBox, 0, 0, 4);
-	gtk_box_pack_start(GTK_BOX(box), scrollWindow2, 0, 0, 4);
+	gtk_box_pack_start(GTK_BOX(box), scrollWindowBox, 0, 0, 4);
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, 0, 0, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), box, 0, 0, 4);
 
 	gtk_container_add(GTK_CONTAINER(scrollWindow1), treeView);
-	gtk_container_add(GTK_CONTAINER(scrollWindow2), listView);
+	gtk_container_add(GTK_CONTAINER(scrollWindow2), listView1);
+	gtk_container_add(GTK_CONTAINER(scrollWindow3), listView2);
 	gtk_container_add(GTK_CONTAINER(window), hbox);
 }
 
@@ -74,17 +79,23 @@ void Window::createList(){
 	GtkCellRenderer *renderer;
 	GtkListStore *listStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
 	scrollWindow2 = gtk_scrolled_window_new(NULL, NULL);
+	scrollWindow3 = gtk_scrolled_window_new(NULL, NULL);
 
-	listView = gtk_tree_view_new();
+	listView1 = gtk_tree_view_new();
+	listView2 = gtk_tree_view_new();
 
 	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView), -1, "Header field", renderer, "text", 0, NULL);
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView1), -1, "Header field", renderer, "text", 0, NULL);
 
 	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView), -1, "Value", renderer, "text", 1, NULL);
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView1), -1, "Value", renderer, "text", 1, NULL);
+
+	renderer = gtk_cell_renderer_text_new();
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView2), -1, "Hex data", renderer, "text", 1, NULL);
 
 	GtkTreeModel* model = GTK_TREE_MODEL(listStore);
-	gtk_tree_view_set_model(GTK_TREE_VIEW(listView), model);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(listView1), model);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(listView2), model);
 
 	g_object_unref(model);
 }
@@ -132,7 +143,8 @@ void Window::rescale(){
 	gtk_widget_set_size_request(buttonBox, x / 2 - 5, 40);
 	gtk_widget_set_size_request(copyButtonBox, x / 2 - 5, 40);
 	gtk_widget_set_size_request(scrollWindow1, x / 2 - 5, y - 80);
-	gtk_widget_set_size_request(scrollWindow2, x / 2 - 5, y - 80);
+	gtk_widget_set_size_request(scrollWindow2, x / 2 - 5, y / 2 - 40);
+	gtk_widget_set_size_request(scrollWindow3, x / 2 - 5, y / 2 - 40);
 }
 
 void Window::fileChooser(){
@@ -185,39 +197,44 @@ void Window::populateTree(){
 
 void Window::populateList(Cell* cell){
 	GtkTreeIter iterator, parent;
-	GtkListStore *listStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
+	GtkListStore *listStore1 = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
+	GtkListStore *listStore2 = gtk_list_store_new(1, G_TYPE_STRING);
 
 	if(cell->getType() == VALUE_CELL){
+		std::stringstream ss;
 		ValueCell* valueCell = (ValueCell*)cell;
-		gtk_list_store_append(listStore, &iterator);
-		gtk_list_store_set(listStore, &iterator, 0, "Size", 1, std::to_string(-valueCell->getSize()).c_str(), -1);
-		gtk_list_store_append(listStore, &iterator);
-		gtk_list_store_set(listStore, &iterator, 0, "Node ID", 1, std::to_string(valueCell->getType()).c_str(), -1);
-		gtk_list_store_append(listStore, &iterator);
-		gtk_list_store_set(listStore, &iterator, 0, "Data length", 1, std::to_string(valueCell->getDataLength()).c_str(), -1);
-		gtk_list_store_append(listStore, &iterator);
-		gtk_list_store_set(listStore, &iterator, 0, "Value type", 1, std::to_string(valueCell->getValueType()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Size", 1, std::to_string(-valueCell->getSize()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Node ID", 1, std::to_string(valueCell->getType()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Data length", 1, std::to_string(valueCell->getDataLength()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Value type", 1, std::to_string(valueCell->getValueType()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		//ss << std::hex << valueCell->getData();
+		//gtk_list_store_set(listStore1, &iterator, 0, ss.c_str(), -1);
 	}
 	else if(cell->getType() == KEY_CELL){
 		KeyCell* keyCell = (KeyCell*)cell;
-		gtk_list_store_append(listStore, &iterator);
-		gtk_list_store_set(listStore, &iterator, 0, "Size", 1, std::to_string(-keyCell->getSize()).c_str(), -1);
-		gtk_list_store_append(listStore, &iterator);
-		gtk_list_store_set(listStore, &iterator, 0, "Node ID", 1, std::to_string(keyCell->getType()).c_str(), -1);
-		gtk_list_store_append(listStore, &iterator);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Size", 1, std::to_string(-keyCell->getSize()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Node ID", 1, std::to_string(keyCell->getType()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
 		tm* localTime = localtime(keyCell->getLastWriteTime());
 		std::stringstream timeString;
 		if(localTime == NULL)
 			timeString << "Bad time format";
 		else
 			timeString << 1900 + localTime->tm_year << '-' << localTime->tm_mon << '-' << localTime->tm_mday;
-		gtk_list_store_set(listStore, &iterator, 0, "Last write time", 1, timeString.str().c_str(), -1);
-		gtk_list_store_append(listStore, &iterator);
-		gtk_list_store_set(listStore, &iterator, 0, "Number of values", 1, std::to_string(keyCell->getNumberOfValues()).c_str(), -1);
+		gtk_list_store_set(listStore1, &iterator, 0, "Last write time", 1, timeString.str().c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Number of values", 1, std::to_string(keyCell->getNumberOfValues()).c_str(), -1);
 	}
 
-	GtkTreeModel *listModel = GTK_TREE_MODEL(listStore);
-	gtk_tree_view_set_model(GTK_TREE_VIEW(listView), listModel);
+	GtkTreeModel *listModel = GTK_TREE_MODEL(listStore1);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(listView1), listModel);
 	g_object_unref(listModel);
 }
 

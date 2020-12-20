@@ -65,7 +65,9 @@ public:
 	std::string name;
 	KeyCell();
 	KeyCell(const std::vector<std::byte> &buffer, size_t offset);
+	KeyCell(const std::string &buffer, size_t offset);
 	void makeTree(const std::vector<std::byte> &buffer, std::map<unsigned int, std::unique_ptr<Cell>> &cellMap);
+	void makeTree2(const std::string &buffer, std::map<unsigned int, std::unique_ptr<Cell>> &cellMap);
 	int readCell(std::ifstream& stream) override;
 	void print() override;
 	short int getType() override;

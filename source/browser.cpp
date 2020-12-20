@@ -50,6 +50,16 @@ auto vectorToInteger(const std::vector<std::byte> &buffer, size_t offset, T &res
 	return sizeof(T);
 }
 
+template<typename T>
+auto vectorToInteger(const std::string &buffer, size_t offset, T &result, bool littleEndian = true) {
+	result = 0;
+	std::array<std::byte, sizeof(T)> bytes;
+	//std::copy_n(&buffer[0] + offset, bytes.size(), bytes.begin());
+	memcpy((void*) &result, &buffer[0] + offset, bytes.size());
+
+	return sizeof(T);
+}
+
 Cell::Cell(){
 	offset = 0;
 }
@@ -81,6 +91,29 @@ KeyCell::KeyCell(const std::vector<std::byte> &buffer, size_t offset) : Cell() {
 	readOffset += 2;
 	for (size_t i = 0; i < this->keyNameLength; i++)
 		this->name.push_back(std::to_integer<char>(buffer.at(readOffset + i)));
+}
+
+KeyCell::KeyCell(const std::string &buffer, size_t offset) : Cell() {
+	this->offset = offset;
+	size_t readOffset = this->offset;
+	readOffset += vectorToInteger(buffer, readOffset, this->size);
+	readOffset += vectorToInteger(buffer, readOffset, this->ID);
+	readOffset += vectorToInteger(buffer, readOffset, this->nodeType);
+	readOffset += vectorToInteger(buffer, readOffset, this->lastWriteTime);
+	readOffset += 4;
+	readOffset += vectorToInteger(buffer, readOffset, this->parentOffset);
+	readOffset += vectorToInteger(buffer, readOffset, this->numberOfSubkeys);
+	readOffset += 4;
+	readOffset += vectorToInteger(buffer, readOffset, this->subkeyListOffset);
+	readOffset += 4;
+	readOffset += vectorToInteger(buffer, readOffset, this->numberOfValues);
+	readOffset += vectorToInteger(buffer, readOffset, this->valueListOffset);
+	readOffset += vectorToInteger(buffer, readOffset, this->securityIdentifierOffset);
+	readOffset += 24;
+	readOffset += vectorToInteger(buffer, readOffset, this->keyNameLength);
+	readOffset += 2;
+
+	this->name = buffer.substr(readOffset, keyNameLength);
 }
 
 int KeyCell::readCell(std::ifstream &stream){
@@ -126,6 +159,30 @@ void KeyCell::print() {
 
 unsigned int KeyCell::getOffset() {
 	return this->offset;
+}
+
+void KeyCell::makeTree2(const std::string &buffer, std::map<unsigned int, std::unique_ptr<Cell>> &cellMap){
+	unsigned int offset;
+	for (size_t i = 0; i < this->numberOfSubkeys; i++){
+		vectorToInteger(buffer, HBIN + this->subkeyListOffset + (8 * (i + 1)), offset);
+		offset += HBIN;
+		this->subKeys.emplace_back(static_cast<KeyCell*>(std::move(cellMap[offset].release())));
+		cellMap.erase(offset);
+
+		for (size_t j = 0; j < this->subKeys.back()->numberOfValues; j++) {
+			vectorToInteger(buffer, HBIN + this->subKeys.back()->valueListOffset + (4 * (j + 1)), offset);
+			//this->subKeys.back()->print();
+			//std::cout << "OFF: " << offset << std::endl;
+			offset += HBIN;
+			this->subKeys.back()->values.emplace_back(static_cast<ValueCell*>(std::move(cellMap[offset].release())));
+			//std::cout << this->subKeys.back()->numberOfValues << " " << offset << std::endl;
+			if (offset == 7896)
+				this->subKeys.back()->values.back()->print();
+			cellMap.erase(offset);
+		}
+		
+		this->subKeys.back()->makeTree2(buffer, cellMap);
+	}
 }
 
 void KeyCell::makeTree(const std::vector<std::byte> &buffer, std::map<unsigned int, std::unique_ptr<Cell>> &cellMap) {
@@ -297,6 +354,50 @@ std::vector<std::unique_ptr<KeyCell>> &RegistryHive::getTree(){
 RegistryHive::RegistryHive(const std::string &filepath) : RegistryHive::RegistryHive(readFile(filepath)){
 	this->filename = filepath;
 }
+/*
+RegistryHive::RegistryHive(const std::string &filepath){
+	std::vector<std::unique_ptr<Cell>> cells;
+	this->filename = filepath;
+	std::ifstream file(filepath, std::ios::binary);
+	std::string buffer;
+	buffer.assign(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+	file.close();
+	int cur = buffer.find("\x6e\x6b");
+	while(cur != std::string::npos){
+		cells.emplace_back(std::make_unique<KeyCell>(buffer, cur - 4));
+		cur += abs(cells.back()->getSize()) - 4;
+		cur = buffer.find("\x6e\x6b", cur);
+	}
+
+	cur = buffer.find("\x76\x6b");
+	while(cur != std::string::npos){
+		cells.emplace_back(std::make_unique<ValueCell>(buffer, cur - 4));
+		cur += abs(cells.back()->getSize()) - 4;
+		cur = buffer.find("\x76\x6b", cur);
+	}
+
+	std::cout << std::dec << "Cells: " << cells.size() << std::endl;
+
+	std::map<unsigned int, std::unique_ptr<Cell>> cellMap = makeMap(cells);
+
+	std::cout << "Mapped: " << std::dec << cellMap.size() << std::endl;
+
+	// Create tree
+	while (!cellMap.empty()) {
+		auto key = cellMap.begin()->first;
+		if (cellMap.size() == 1)
+			cellMap.begin()->second->print();
+		auto cell = static_cast<KeyCell*>(std::move(cellMap[key].release()));
+		this->tree.emplace_back(std::move(cell));
+		cellMap.erase(key);
+		this->tree.back()->makeTree2(buffer, cellMap);
+	}
+
+	std::cout << "Remaining: " << cellMap.size() << std::endl;
+
+	std::cout << "Trees: " << this->tree.size() << std::endl;
+}
+*/
 
 RegistryHive::RegistryHive(const std::vector<std::byte> &buffer) {
 	auto HEADER = makeBytes(0x72, 0x65, 0x67, 0x66); // regf

@@ -143,6 +143,7 @@ void Window::fileChooser(){
 	if(ret == GTK_RESPONSE_OK){
 		std::string filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(fileChooserWindow));
 		openHives.push_back(new RegistryHive(filename));
+		std::cout << "out" << std::endl;
 		populateTree();
 	}
 	gtk_widget_destroy(fileChooserWindow);
@@ -168,7 +169,7 @@ void Window::populateTree(){
 	g_object_ref(treeModel);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(treeView), NULL);
 	GtkTreeStore *treeStore = GTK_TREE_STORE(treeModel);
-	unsigned int i = openHives.size() - 1;
+	int i = openHives.size() - 1;
 	if(i >= 0){
 		gtk_tree_store_append(treeStore, &parent, NULL);
 		gtk_tree_store_set(treeStore, &parent, 0, openHives[i]->getName().c_str(), 1, NULL, -1);

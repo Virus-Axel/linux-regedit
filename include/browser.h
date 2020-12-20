@@ -51,6 +51,7 @@ public:
 	short int getType() override;
 	int getDataLength();
 	int getValueType();
+	std::string& getData();
 	~ValueCell();
 };
 

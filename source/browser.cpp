@@ -283,6 +283,10 @@ void ValueCell::print(){
 	std::cout << this->data << std::endl;
 }
 
+std::string& ValueCell::getData(){
+	return data;
+}
+
 short int ValueCell::getType(){
 	return ID;
 }

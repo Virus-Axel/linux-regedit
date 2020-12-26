@@ -46,7 +46,7 @@ void Window::createBoxes(){
 	gtk_box_pack_start(GTK_BOX(vbox), scrollWindow1, 0, 0, 4);
 
 	gtk_box_pack_start(GTK_BOX(scrollWindowBox), scrollWindow2, 0, 0, 0);
-	gtk_box_pack_start(GTK_BOX(scrollWindowBox), scrollWindow3, 0, 0, 0);
+	gtk_box_pack_start(GTK_BOX(scrollWindowBox), scrollWindow3, 0, 0, 4);
 
 	gtk_box_pack_start(GTK_BOX(box), copyButtonBox, 0, 0, 4);
 	gtk_box_pack_start(GTK_BOX(box), scrollWindowBox, 0, 0, 4);
@@ -82,9 +82,11 @@ void Window::createList(){
 	GtkListStore *listStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
 	scrollWindow2 = gtk_scrolled_window_new(NULL, NULL);
 	scrollWindow3 = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollWindow3), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
 	listView1 = gtk_tree_view_new();
 	textView = gtk_text_view_new();
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textView), GTK_WRAP_CHAR);
 
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(listView1), -1, "Header field", renderer, "text", 0, NULL);
@@ -142,7 +144,7 @@ void Window::rescale(){
 	gtk_widget_set_size_request(copyButtonBox, x / 2 - 5, 40);
 	gtk_widget_set_size_request(scrollWindow1, x / 2 - 5, y - 80);
 	gtk_widget_set_size_request(scrollWindow2, x / 2 - 5, y / 2 - 40);
-	gtk_widget_set_size_request(scrollWindow3, x / 2 - 5, y / 2 - 40);
+	gtk_widget_set_size_request(scrollWindow3, x / 2 - 5, y / 2 - 44);
 }
 
 void Window::fileChooser(){
@@ -206,7 +208,11 @@ void Window::populateList(Cell* cell){
 		gtk_list_store_append(listStore1, &iterator);
 		gtk_list_store_set(listStore1, &iterator, 0, "Node ID", 1, std::to_string(valueCell->getType()).c_str(), -1);
 		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Name length", 1, std::to_string(valueCell->getValueNameLength()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
 		gtk_list_store_set(listStore1, &iterator, 0, "Data length", 1, std::to_string(valueCell->getDataLength()).c_str(), -1);
+		gtk_list_store_append(listStore1, &iterator);
+		gtk_list_store_set(listStore1, &iterator, 0, "Data offset", 1, std::to_string(valueCell->getOffset()).c_str(), -1);
 		gtk_list_store_append(listStore1, &iterator);
 		gtk_list_store_set(listStore1, &iterator, 0, "Value type", 1, std::to_string(valueCell->getValueType()).c_str(), -1);
 

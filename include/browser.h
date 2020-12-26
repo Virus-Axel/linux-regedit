@@ -49,6 +49,7 @@ public:
 	unsigned int getOffset() override;
 	int getSize() override;
 	short int getType() override;
+	short int getValueNameLength();
 	int getDataLength();
 	int getValueType();
 	std::string& getData();

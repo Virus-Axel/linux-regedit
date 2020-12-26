@@ -287,6 +287,10 @@ std::string& ValueCell::getData(){
 	return data;
 }
 
+short int ValueCell::getValueNameLength(){
+	return valueNameLength;
+}
+
 short int ValueCell::getType(){
 	return ID;
 }
